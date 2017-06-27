@@ -1,15 +1,15 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
-	"github.com/DavidHuie/gomigrate"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	_ "github.com/go-sql-driver/mysql"
 	"strconv"
+	"database/sql"
+	"github.com/DavidHuie/gomigrate"
+	"fmt"
 )
 
 func main() {
@@ -21,18 +21,21 @@ func main() {
 	log.Fatal(http.ListenAndServe(":12345", router))
 }
 
-func ApplyMigrations() {
-	db, _ := sql.Open("mysql", "userDev:passDev@tcp(127.0.0.1:3306)/expenses2?parseTime=true")
-	defer db.Close()
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-	migrator, _ := gomigrate.NewMigrator(db, gomigrate.Mysql{}, "/Users/adina/go/src/goCodeChallenge/migrations")
-	err := migrator.Migrate()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+
+func CreateExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
+	var expense Expense
+	_ = json.NewDecoder(req.Body).Decode(&expense)
+
+	SaveExpense(expense)
+	json.NewEncoder(w).Encode(expense)
 }
+
+func GetExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
+	expenses := GetAllExpenses()
+	_ = json.NewDecoder(req.Body).Decode(&expenses)
+	json.NewEncoder(w).Encode(expenses)
+}
+
 
 type Expense struct {
 	ID     int32  `json:"id,omitempty"`
@@ -42,18 +45,13 @@ type Expense struct {
 	VAT    string `json:"vat"`
 }
 
-func CreateExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
+func SaveExpense(expense Expense) {
 	db, _ := sql.Open("mysql", "userDev:passDev@tcp(127.0.0.1:3306)/expenses2?parseTime=true")
 	defer db.Close()
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
 	}
 
-	var expense Expense
-	_ = json.NewDecoder(req.Body).Decode(&expense)
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
 	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -70,10 +68,9 @@ func CreateExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	json.NewEncoder(w).Encode(expense)
 }
 
-func GetExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
+func GetAllExpenses() []Expense{
 	db, _ := sql.Open("mysql", "userDev:passDev@tcp(127.0.0.1:3306)/expenses2?parseTime=true")
 	defer db.Close()
 	if err := db.Ping(); err != nil {
@@ -98,7 +95,18 @@ func GetExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
 	}
-	//var expense Expense = Expense{ID:1, Date: "12/12/1988", Reason:"just so", Amount:12, VAT: 12 * 20 / 100 }
-	_ = json.NewDecoder(req.Body).Decode(&expenses)
-	json.NewEncoder(w).Encode(expenses)
+	return expenses
+}
+
+func ApplyMigrations() {
+	db, _ := sql.Open("mysql", "userDev:passDev@tcp(127.0.0.1:3306)/expenses2?parseTime=true")
+	defer db.Close()
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+	migrator, _ := gomigrate.NewMigrator(db, gomigrate.Mysql{}, "/Users/adina/go/src/goCodeChallenge/migrations")
+	err := migrator.Migrate()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
