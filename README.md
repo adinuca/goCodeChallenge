@@ -140,6 +140,7 @@ Setup
 > For the application to work you need to disable Cross-Origin restrictions in your browser.
 
 > Front end application can be accessible on localhost:8080 
+
 Available endpoints
 -------------------
 GET  localhost:12345/app/expenses - returns the list of all expenses saved so far
