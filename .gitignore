@@ -1,0 +1,7 @@
+node_modules
+build
+static
+.idea
+target
+dependency-reduced-pom.xml
+node

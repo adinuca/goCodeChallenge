@@ -28,12 +28,21 @@ func CreateExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
 
 	SaveExpense(expense)
 	json.NewEncoder(w).Encode(expense)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "POST, GET")
+	w.Header().Set("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type")
+	w.Header().Set("Access-Control-Max-Age", 86400)
+
 }
 
 func GetExpenseEndpoint(w http.ResponseWriter, req *http.Request) {
 	expenses := GetAllExpenses()
 	_ = json.NewDecoder(req.Body).Decode(&expenses)
 	json.NewEncoder(w).Encode(expenses)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "POST, GET")
+	w.Header().Set("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type")
+	w.Header().Set("Access-Control-Max-Age", 86400)
 }
 
 
